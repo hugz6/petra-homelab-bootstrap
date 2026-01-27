@@ -105,8 +105,6 @@ resource "proxmox_virtual_environment_vm" "control_plane" {
 # ============================================================================
 
 resource "proxmox_virtual_environment_vm" "worker_pve1" {
-  depends_on = [proxmox_virtual_environment_vm.control_plane]
-
   vm_id       = var.vm_start_id + 1
   name        = "k8s-worker-pve1"
   description = "Kubernetes Worker Node on PVE-1"
@@ -188,8 +186,6 @@ resource "proxmox_virtual_environment_vm" "worker_pve1" {
 # ============================================================================
 
 resource "proxmox_virtual_environment_vm" "worker_pve2" {
-  depends_on = [proxmox_virtual_environment_vm.control_plane]
-
   vm_id       = var.vm_start_id + 2
   name        = "k8s-worker-pve2"
   description = "Kubernetes Worker Node on PVE-2"
