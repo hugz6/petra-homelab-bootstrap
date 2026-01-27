@@ -95,11 +95,6 @@ resource "proxmox_virtual_environment_vm" "control_plane" {
 
     user_data_file_id = var.cloud_init_user_data_file_id
   }
-
-  clone {
-    vm_id = var.template_vm_id_pve1
-    full  = true
-  }
 }
 
 # ============================================================================
@@ -180,11 +175,6 @@ resource "proxmox_virtual_environment_vm" "worker_pve1" {
 
     user_data_file_id = var.cloud_init_user_data_file_id
   }
-
-  clone {
-    vm_id = var.template_vm_id_pve1
-    full  = true
-  }
 }
 
 # ============================================================================
@@ -264,11 +254,6 @@ resource "proxmox_virtual_environment_vm" "worker_pve2" {
     }
 
     user_data_file_id = var.cloud_init_user_data_file_id
-  }
-
-  clone {
-    vm_id = var.template_vm_id_pve2
-    full  = true
   }
 }
 
