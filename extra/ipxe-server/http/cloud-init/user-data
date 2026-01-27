@@ -1,0 +1,41 @@
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    realname: "Ubuntu User"
+    username: "ubuntu"
+    password: "$6$1RMo.vjIdnMKGQnw$3ip2IzmR5WAvM2o2EwmiBWTLDsKZhMVjh.v0miIPxg4ED1D/WVcLr37eoS2aqPRlpTQy79.QGkpkp7NrZ7YIx1"
+    hostname: "unassigned-hostname"
+  early-commands:
+    # Hack to capture hostname passed via kernel cmdline (from iPXE)
+    # and inject it into the autoinstall config before installation starts
+    - |
+      HOST_FROM_CMDLINE=$(cat /proc/cmdline | sed -n 's/.*hostname=\([^ ]*\).*/\1/p')
+      if [ -n "$HOST_FROM_CMDLINE" ]; then
+        sed -i "s/unassigned-hostname/$HOST_FROM_CMDLINE/" /autoinstall.yaml
+      fi
+  late-commands:
+    - "echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/010-ubuntu-nopasswd"
+    - "chmod 440 /target/etc/sudoers.d/010-ubuntu-nopasswd"
+  ssh:
+    install-server: true
+    allow-pw: false
+    authorized-keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP+FtGsz3XkYbLfCKEa1WLiXn/817hQ+g1tG0rGkPzCB zeta@pop-os
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  packages:
+    - qemu-guest-agent
+    - openssh-server
+    - build-essential
+    - curl
+    - wget
+    - git
+  storage:
+    layout:
+      name: direct
+      match:
+        path: /dev/sda
+  user-data:
+    disable_root: false

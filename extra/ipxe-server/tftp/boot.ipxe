@@ -1,0 +1,47 @@
+#!ipxe
+
+# Configuration globale
+set server_ip 192.168.1.105
+set http_url http://${server_ip}:8000
+
+# Detect VM purpose by MAC addrs and install corresponding image
+iseq ${net0/mac} bc:24:11:00:00:01 && set hostname k8s-cp-01 && goto boot_ubuntu ||
+iseq ${net0/mac} bc:24:11:00:00:02 && set hostname k8s-w-01 && goto boot_ubuntu ||
+iseq ${net0/mac} bc:24:11:00:00:03 && set hostname k8s-w-02 && goto boot_ubuntu ||
+
+# If no machines matches display the menu
+goto start
+
+# Menu de demarrage (Fallback)
+:start
+menu Boot Menu for Petra Homelab (Unknown machine: ${net0/mac})
+item --gap --             ---------------------------------
+item install_k8s_control  Installer Control Plane (Ubuntu 22.04)
+item install_k8s_worker   Installer Worker Node (Ubuntu 22.04)
+item shell                Drop to iPXE shell
+item exit                 Exit to BIOS
+choose --timeout 10000 --default install_k8s_control target && goto ${target}
+
+:install_k8s_control
+echo Installing Control Plane...
+set hostname k8s-control-plane-manual
+goto boot_ubuntu
+
+:install_k8s_worker
+echo Installing worker...
+set hostname k8s-worker-manual
+goto boot_ubuntu
+
+:boot_ubuntu
+# URL of ubuntu
+set iso_url ${http_url}/images/ubuntu-22.04.5-live-server-amd64.iso
+
+kernel ${http_url}/images/vmlinuz initrd=initrd ip=dhcp url=${iso_url} autoinstall ds=nocloud-net;s=${http_url}/cloud-init/ cloud-config-url=${http_url}/cloud-init/user-data hostname=${hostname}
+initrd ${http_url}/images/initrd
+boot
+
+:shell
+shell
+
+:exit
+exit
