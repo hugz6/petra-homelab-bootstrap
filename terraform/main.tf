@@ -47,7 +47,7 @@ resource "proxmox_virtual_environment_vm" "control_plane" {
   cpu {
     cores   = var.control_plane_cores
     sockets = 1
-    type    = "x86-64-v2-AES"
+    type    = "host"
   }
 
   memory {
@@ -121,7 +121,7 @@ resource "proxmox_virtual_environment_vm" "worker_pve1" {
   cpu {
     cores   = var.worker_pve1_cores
     sockets = 1
-    type    = "x86-64-v2-AES"
+    type    = "host"
   }
 
   memory {
