@@ -42,6 +42,8 @@ resource "proxmox_virtual_environment_vm" "control_plane" {
   started = true
   on_boot = true
 
+  boot_order = ["scsi0", "net0"]
+
   cpu {
     cores   = var.control_plane_cores
     sockets = 1
@@ -68,9 +70,10 @@ resource "proxmox_virtual_environment_vm" "control_plane" {
   }
 
   network_device {
-    bridge  = var.vm_bridge
-    model   = "virtio"
-    vlan_id = var.vlan_id
+    bridge      = var.vm_bridge
+    model       = "virtio"
+    vlan_id     = var.vlan_id
+    mac_address = var.control_plane_mac
   }
 
   initialization {
@@ -113,6 +116,8 @@ resource "proxmox_virtual_environment_vm" "worker_pve1" {
   started = true
   on_boot = true
 
+  boot_order = ["scsi0", "net0"]
+
   cpu {
     cores   = var.worker_pve1_cores
     sockets = 1
@@ -148,9 +153,10 @@ resource "proxmox_virtual_environment_vm" "worker_pve1" {
   }
 
   network_device {
-    bridge  = var.vm_bridge
-    model   = "virtio"
-    vlan_id = var.vlan_id
+    bridge      = var.vm_bridge
+    model       = "virtio"
+    vlan_id     = var.vlan_id
+    mac_address = var.worker_pve1_mac
   }
 
   initialization {
@@ -193,6 +199,8 @@ resource "proxmox_virtual_environment_vm" "worker_pve2" {
   started = true
   on_boot = true
 
+  boot_order = ["scsi0", "net0"]
+
   cpu {
     cores   = var.worker_pve2_cores
     sockets = 1
@@ -228,9 +236,10 @@ resource "proxmox_virtual_environment_vm" "worker_pve2" {
   }
 
   network_device {
-    bridge  = var.vm_bridge
-    model   = "virtio"
-    vlan_id = var.vlan_id
+    bridge      = var.vm_bridge
+    model       = "virtio"
+    vlan_id     = var.vlan_id
+    mac_address = var.worker_pve2_mac
   }
 
   initialization {

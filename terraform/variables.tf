@@ -178,16 +178,34 @@ variable "control_plane_ip" {
   default     = "210"
 }
 
+variable "control_plane_mac" {
+  description = "MAC address for control plane node"
+  type        = string
+  default     = "BC:24:11:00:00:01"
+}
+
 variable "worker_pve1_ip" {
   description = "Static IP address for worker on pve-1 (last octet or full IP)"
   type        = string
   default     = "211"
 }
 
+variable "worker_pve1_mac" {
+  description = "MAC address for worker on pve-1"
+  type        = string
+  default     = "BC:24:11:00:00:02"
+}
+
 variable "worker_pve2_ip" {
   description = "Static IP address for worker on pve-2 (last octet or full IP)"
   type        = string
   default     = "212"
+}
+
+variable "worker_pve2_mac" {
+  description = "MAC address for worker on pve-2"
+  type        = string
+  default     = "BC:24:11:00:00:03"
 }
 
 # ============================================================================
