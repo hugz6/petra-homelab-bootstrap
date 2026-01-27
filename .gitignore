@@ -58,8 +58,6 @@ terraform.tfstate*
 .DS_Store
 Thumbs.db
 
-kubespray/kubespray/
-
 *.bak
 *.backup
 *.old
