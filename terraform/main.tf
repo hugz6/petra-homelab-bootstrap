@@ -29,12 +29,12 @@ provider "proxmox" {
 }
 
 # ============================================================================
-# Control Plane Node (pve-1)
+# Control Plane Node on PVE-1
 # ============================================================================
 
 resource "proxmox_virtual_environment_vm" "control_plane" {
   vm_id       = var.vm_start_id
-  name        = "k8s-control-plane"
+  name        = "k8s-cp-1"
   description = "Kubernetes Control Plane Node"
   tags        = ["kubernetes", "control-plane"]
   node_name   = "pve-1"
@@ -78,12 +78,12 @@ resource "proxmox_virtual_environment_vm" "control_plane" {
 }
 
 # ============================================================================
-# Worker Node on PVE-1 (same node as control plane)
+# Worker Node on PVE-1
 # ============================================================================
 
 resource "proxmox_virtual_environment_vm" "worker_pve1" {
   vm_id       = var.vm_start_id + 1
-  name        = "k8s-worker-pve1"
+  name        = "k8s-w-1"
   description = "Kubernetes Worker Node on PVE-1"
   tags        = ["kubernetes", "worker", "pve-1"]
   node_name   = "pve-1"
@@ -141,7 +141,7 @@ resource "proxmox_virtual_environment_vm" "worker_pve1" {
 
 resource "proxmox_virtual_environment_vm" "worker_pve2" {
   vm_id       = var.vm_start_id + 2
-  name        = "k8s-worker-pve2"
+  name        = "k8s-w-2"
   description = "Kubernetes Worker Node on PVE-2"
   tags        = ["kubernetes", "worker", "pve-2"]
   node_name   = "pve-2"
