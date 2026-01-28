@@ -1,0 +1,14 @@
+# Network
+calico_network_backend: bird
+calico_ipip_mode: 'Never'
+calico_vxlan_mode: 'Never'
+
+# Cluster Tuning
+kubelet_config_extra_args:
+  containerLogMaxFiles: 2
+  containerLogMaxSize: "10Mi"
+
+# Addons
+metrics_server_enabled: true
+helm_enabled: true
+argocd_enabled: true

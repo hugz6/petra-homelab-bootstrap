@@ -1,0 +1,2 @@
+# Cluster Tuning
+etcd_election_timeout: 5000
