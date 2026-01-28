@@ -154,7 +154,7 @@ resource "proxmox_virtual_environment_vm" "worker_pve2" {
   cpu {
     cores   = var.worker_pve2_cores
     sockets = 1
-    type    = "x86-64-v2-AES"
+    type    = "host"
   }
 
   memory {
