@@ -80,3 +80,4 @@ extra/ipxe-server/dnsmasq.conf
 extra/ipxe-server/http/images/
 extra/ipxe-server/tftp/ipxe.efi
 extra/ipxe-server/tftp/undionly.kpxe
+terraform.tfvars
