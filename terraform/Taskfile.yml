@@ -1,0 +1,40 @@
+version: '3'
+
+tasks:
+  default:
+    desc: Shows the list of available tasks
+    cmds:
+      - task --list
+
+  tf-init:
+    desc: Initializes Terraform
+    status:
+      - test -d .terraform
+    cmds:
+      - terraform init
+
+  tf-plan:
+    dotenv: [.env]
+    deps: [tf-init]
+    desc: Plans the Terraform deployment
+    cmds:
+      - terraform plan
+
+  tf-apply:
+    dotenv: [.env]
+    deps: [tf-plan]
+    prompt: "Read the plan. Are you sure you want to apply it?"
+    desc: Applies the Terraform deployment
+    cmds:
+      - terraform apply -auto-approve
+
+  tf-destroy:
+    dotenv: [.env]
+    prompt: "WARNING: This will destroy the cluster. Are you sure you want to continue?"
+    desc: Destroys the Terraform deployment
+    cmds:
+      - terraform destroy
+
+  tf:
+    desc: Initializes, plans and applies the Terraform deployment
+    deps: [tf-apply]
