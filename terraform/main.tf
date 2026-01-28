@@ -75,29 +75,6 @@ resource "proxmox_virtual_environment_vm" "control_plane" {
     vlan_id     = var.vlan_id
     mac_address = var.control_plane_mac
   }
-
-  initialization {
-    datastore_id = "local-lvm"
-
-    ip_config {
-      ipv4 {
-        address = "${cidrhost(var.network_cidr, var.control_plane_ip)}/${split("/", var.network_cidr)[1]}"
-        gateway = var.network_gateway
-      }
-    }
-
-    dns {
-      servers = var.network_dns_servers
-    }
-
-    user_account {
-      username = var.vm_user
-      password = var.vm_password
-      keys     = var.ssh_public_key != "" ? [var.ssh_public_key] : []
-    }
-
-    user_data_file_id = var.cloud_init_user_data_file_id
-  }
 }
 
 # ============================================================================
@@ -156,29 +133,6 @@ resource "proxmox_virtual_environment_vm" "worker_pve1" {
     vlan_id     = var.vlan_id
     mac_address = var.worker_pve1_mac
   }
-
-  initialization {
-    datastore_id = "local-lvm"
-
-    ip_config {
-      ipv4 {
-        address = "${cidrhost(var.network_cidr, var.worker_pve1_ip)}/${split("/", var.network_cidr)[1]}"
-        gateway = var.network_gateway
-      }
-    }
-
-    dns {
-      servers = var.network_dns_servers
-    }
-
-    user_account {
-      username = var.vm_user
-      password = var.vm_password
-      keys     = var.ssh_public_key != "" ? [var.ssh_public_key] : []
-    }
-
-    user_data_file_id = var.cloud_init_user_data_file_id
-  }
 }
 
 # ============================================================================
@@ -236,29 +190,6 @@ resource "proxmox_virtual_environment_vm" "worker_pve2" {
     model       = "virtio"
     vlan_id     = var.vlan_id
     mac_address = var.worker_pve2_mac
-  }
-
-  initialization {
-    datastore_id = "local-lvm"
-
-    ip_config {
-      ipv4 {
-        address = "${cidrhost(var.network_cidr, var.worker_pve2_ip)}/${split("/", var.network_cidr)[1]}"
-        gateway = var.network_gateway
-      }
-    }
-
-    dns {
-      servers = var.network_dns_servers
-    }
-
-    user_account {
-      username = var.vm_user
-      password = var.vm_password
-      keys     = var.ssh_public_key != "" ? [var.ssh_public_key] : []
-    }
-
-    user_data_file_id = var.cloud_init_user_data_file_id
   }
 }
 

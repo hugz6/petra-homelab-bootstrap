@@ -161,17 +161,6 @@ variable "network_cidr" {
   type        = string
 }
 
-variable "network_gateway" {
-  description = "Network gateway IP address"
-  type        = string
-}
-
-variable "network_dns_servers" {
-  description = "List of DNS server IP addresses"
-  type        = list(string)
-  default     = ["8.8.8.8", "8.8.4.4"]
-}
-
 variable "control_plane_ip" {
   description = "Static IP address for control plane (last octet or full IP)"
   type        = string
@@ -206,32 +195,4 @@ variable "worker_pve2_mac" {
   description = "MAC address for worker on pve-2"
   type        = string
   default     = "BC:24:11:00:00:03"
-}
-
-# ============================================================================
-# Cloud-Init Configuration
-# ============================================================================
-
-variable "vm_user" {
-  description = "Default username for VM access"
-  type        = string
-  default     = "ubuntu"
-}
-
-variable "vm_password" {
-  description = "Default password for VM access"
-  type        = string
-  sensitive   = true
-}
-
-variable "ssh_public_key" {
-  description = "SSH public key for passwordless authentication"
-  type        = string
-  default     = ""
-}
-
-variable "cloud_init_user_data_file_id" {
-  description = "Custom cloud-init user-data file ID (optional)"
-  type        = string
-  default     = null
 }
