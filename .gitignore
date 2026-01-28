@@ -50,6 +50,8 @@ default.nix.bak
 terraform.tfstate*
 .terraform.lock.hcl
 
+.task/
+
 .vscode/
 .idea/
 *.swp
