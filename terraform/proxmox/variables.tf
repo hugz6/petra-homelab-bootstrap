@@ -8,7 +8,7 @@ variable "proxmox_api_url" {
 }
 
 variable "proxmox_api_token_id" {
-  description = "Proxmox API token ID (format: user@realm!tokenname)"
+  description = "Proxmox API token ID"
   type        = string
 }
 
@@ -19,125 +19,16 @@ variable "proxmox_api_token_secret" {
 }
 
 variable "proxmox_username" {
-  description = "Proxmox username for password authentication (alternative to token)"
+  description = "Proxmox username"
   type        = string
   default     = null
 }
 
 variable "proxmox_password" {
-  description = "Proxmox password for password authentication (alternative to token)"
+  description = "Proxmox password"
   type        = string
   default     = null
   sensitive   = true
-}
-
-# ============================================================================
-# VM Template Configuration
-# ============================================================================
-
-variable "template_name" {
-  description = "Cloud-init template image name"
-  type        = string
-}
-
-variable "template_vm_id_pve1" {
-  description = "Template VM ID on pve-1 node"
-  type        = number
-  default     = 9000
-}
-
-variable "template_vm_id_pve2" {
-  description = "Template VM ID on pve-2 node"
-  type        = number
-  default     = 9001
-}
-
-# ============================================================================
-# VM ID Configuration
-# ============================================================================
-
-variable "vm_start_id" {
-  description = "Starting VM ID for Kubernetes cluster VMs"
-  type        = number
-  default     = 900
-}
-
-# ============================================================================
-# Control Plane Configuration (pve-1)
-# ============================================================================
-
-variable "control_plane_cores" {
-  description = "CPU cores for control plane node"
-  type        = number
-  default     = 4
-}
-
-variable "control_plane_memory" {
-  description = "Memory for control plane node (MB)"
-  type        = number
-  default     = 6144
-}
-
-variable "control_plane_disk_size" {
-  description = "Disk size for control plane node (GB)"
-  type        = number
-  default     = 50
-}
-
-# ============================================================================
-# Worker Node Configuration - PVE-1
-# ============================================================================
-
-variable "worker_pve1_cores" {
-  description = "CPU cores for worker on pve-1 (same node as control plane)"
-  type        = number
-  default     = 10
-}
-
-variable "worker_pve1_memory" {
-  description = "Memory for worker on pve-1 (MB)"
-  type        = number
-  default     = 22528
-}
-
-variable "worker_pve1_disk_size" {
-  description = "Primary disk size for worker on pve-1 (GB)"
-  type        = number
-  default     = 800
-}
-
-variable "worker_pve1_disk2_size" {
-  description = "Secondary disk size for worker on pve-1 (GB)"
-  type        = number
-  default     = 1900
-}
-
-# ============================================================================
-# Worker Node Configuration - PVE-2
-# ============================================================================
-
-variable "worker_pve2_cores" {
-  description = "CPU cores for worker on pve-2"
-  type        = number
-  default     = 14
-}
-
-variable "worker_pve2_memory" {
-  description = "Memory for worker on pve-2 (MB)"
-  type        = number
-  default     = 28672
-}
-
-variable "worker_pve2_disk_size" {
-  description = "Primary disk size for worker on pve-2 (GB)"
-  type        = number
-  default     = 800
-}
-
-variable "worker_pve2_disk2_size" {
-  description = "Secondary disk size for worker on pve-2 (GB)"
-  type        = number
-  default     = 1900
 }
 
 # ============================================================================
@@ -151,48 +42,95 @@ variable "vm_bridge" {
 }
 
 variable "vlan_id" {
-  description = "VLAN ID (optional)"
+  description = "VLAN ID"
   type        = number
   default     = null
 }
 
 variable "network_cidr" {
-  description = "Network CIDR block (e.g., 192.168.1.0/24)"
+  description = "Network CIDR block"
   type        = string
 }
 
-variable "control_plane_ip" {
-  description = "Static IP address for control plane (last octet or full IP)"
-  type        = string
-  default     = "210"
+# ============================================================================
+# Node Configuration
+# ============================================================================
+
+variable "vm_start_id" {
+  description = "Base ID for VMs if not specified"
+  type        = number
+  default     = 900
 }
 
-variable "control_plane_mac" {
-  description = "MAC address for control plane node"
-  type        = string
-  default     = "BC:24:11:00:00:01"
+variable "control_planes" {
+  description = "Map of control plane nodes with their specific configuration"
+  type = map(object({
+    node_name = string
+    vm_id     = number
+    cores     = number
+    memory    = number
+    disks = list(object({
+      size      = number
+      datastore = optional(string, "data-2")
+      interface = string
+    }))
+    ip          = string
+    mac_address = string
+  }))
+  default = {
+    "k8s-cp-1" = {
+      node_name = "pve-1"
+      vm_id     = 900
+      cores     = 4
+      memory    = 6144
+      disks = [
+        { size = 50, datastore = "data-2", interface = "scsi0" }
+      ]
+      ip          = "210"
+      mac_address = "BC:24:11:00:00:01"
+    }
+  }
 }
 
-variable "worker_pve1_ip" {
-  description = "Static IP address for worker on pve-1 (last octet or full IP)"
-  type        = string
-  default     = "211"
-}
-
-variable "worker_pve1_mac" {
-  description = "MAC address for worker on pve-1"
-  type        = string
-  default     = "BC:24:11:00:00:02"
-}
-
-variable "worker_pve2_ip" {
-  description = "Static IP address for worker on pve-2 (last octet or full IP)"
-  type        = string
-  default     = "212"
-}
-
-variable "worker_pve2_mac" {
-  description = "MAC address for worker on pve-2"
-  type        = string
-  default     = "BC:24:11:00:00:03"
+variable "workers" {
+  description = "Map of worker nodes with their specific configuration"
+  type = map(object({
+    node_name = string
+    vm_id     = number
+    cores     = number
+    memory    = number
+    disks = list(object({
+      size      = number
+      datastore = optional(string, "data-2")
+      interface = string
+    }))
+    ip          = string
+    mac_address = string
+  }))
+  default = {
+    "k8s-w-1" = {
+      node_name = "pve-1"
+      vm_id     = 901
+      cores     = 10
+      memory    = 22528
+      disks = [
+        { size = 800, datastore = "data-2", interface = "scsi0" },
+        { size = 1900, datastore = "data-2", interface = "scsi1" }
+      ]
+      ip          = "211"
+      mac_address = "BC:24:11:00:00:02"
+    }
+    "k8s-w-2" = {
+      node_name = "pve-2"
+      vm_id     = 902
+      cores     = 14
+      memory    = 28672
+      disks = [
+        { size = 800, datastore = "data-2", interface = "scsi0" },
+        { size = 1900, datastore = "data-2", interface = "scsi1" }
+      ]
+      ip          = "212"
+      mac_address = "BC:24:11:00:00:03"
+    }
+  }
 }

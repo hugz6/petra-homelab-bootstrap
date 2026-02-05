@@ -1,14 +1,7 @@
-# ============================================================================
 # Terraform Configuration
-# ============================================================================
-# Kubernetes cluster infrastructure on Proxmox VE
-# - 1 control plane node on pve-1
-# - 1 worker node on pve-1
-# - 1 worker node on pve-2
-# ============================================================================
 
 terraform {
-  required_version = ">= 1.0"
+  required_version = ">= 1.3"
 
   required_providers {
     proxmox = {
@@ -18,26 +11,22 @@ terraform {
   }
 }
 
-# ============================================================================
-# Proxmox Provider
-# ============================================================================
-
 provider "proxmox" {
   endpoint  = var.proxmox_api_url
   api_token = "${var.proxmox_api_token_id}=${var.proxmox_api_token_secret}"
   insecure  = true
 }
 
-# ============================================================================
-# Control Plane Node on PVE-1
-# ============================================================================
+# Control Plane Nodes
 
 resource "proxmox_virtual_environment_vm" "control_plane" {
-  vm_id       = var.vm_start_id
-  name        = "k8s-cp-1"
+  for_each = var.control_planes
+
+  vm_id       = each.value.vm_id
+  name        = each.key
   description = "Kubernetes Control Plane Node"
   tags        = ["kubernetes", "control-plane"]
-  node_name   = "pve-1"
+  node_name   = each.value.node_name
 
   started = true
   on_boot = true
@@ -45,13 +34,13 @@ resource "proxmox_virtual_environment_vm" "control_plane" {
   boot_order = ["scsi0", "net0"]
 
   cpu {
-    cores   = var.control_plane_cores
+    cores   = each.value.cores
     sockets = 1
     type    = "host"
   }
 
   memory {
-    dedicated = var.control_plane_memory
+    dedicated = each.value.memory
   }
 
   agent {
@@ -60,33 +49,36 @@ resource "proxmox_virtual_environment_vm" "control_plane" {
     type    = "virtio"
   }
 
-  disk {
-    datastore_id = "data-2"
-    interface    = "scsi0"
-    size         = var.control_plane_disk_size
-    file_format  = "raw"
-    ssd          = true
-    discard      = "on"
+  dynamic "disk" {
+    for_each = each.value.disks
+    content {
+      datastore_id = disk.value.datastore
+      interface    = disk.value.interface
+      size         = disk.value.size
+      file_format  = "raw"
+      ssd          = true
+      discard      = "on"
+    }
   }
 
   network_device {
     bridge      = var.vm_bridge
     model       = "virtio"
     vlan_id     = var.vlan_id
-    mac_address = var.control_plane_mac
+    mac_address = each.value.mac_address
   }
 }
 
-# ============================================================================
-# Worker Node on PVE-1
-# ============================================================================
+# Worker Nodes
 
-resource "proxmox_virtual_environment_vm" "worker_pve1" {
-  vm_id       = var.vm_start_id + 1
-  name        = "k8s-w-1"
-  description = "Kubernetes Worker Node on PVE-1"
-  tags        = ["kubernetes", "worker", "pve-1"]
-  node_name   = "pve-1"
+resource "proxmox_virtual_environment_vm" "worker" {
+  for_each = var.workers
+
+  vm_id       = each.value.vm_id
+  name        = each.key
+  description = "Kubernetes Worker Node"
+  tags        = ["kubernetes", "worker", each.value.node_name]
+  node_name   = each.value.node_name
 
   started = true
   on_boot = true
@@ -94,13 +86,13 @@ resource "proxmox_virtual_environment_vm" "worker_pve1" {
   boot_order = ["scsi0", "net0"]
 
   cpu {
-    cores   = var.worker_pve1_cores
+    cores   = each.value.cores
     sockets = 1
     type    = "host"
   }
 
   memory {
-    dedicated = var.worker_pve1_memory
+    dedicated = each.value.memory
   }
 
   agent {
@@ -109,142 +101,62 @@ resource "proxmox_virtual_environment_vm" "worker_pve1" {
     type    = "virtio"
   }
 
-  disk {
-    datastore_id = "data-2"
-    interface    = "scsi0"
-    size         = var.worker_pve1_disk_size
-    file_format  = "raw"
-    ssd          = true
-    discard      = "on"
-  }
-
-  disk {
-    datastore_id = "data-2"
-    interface    = "scsi1"
-    size         = var.worker_pve1_disk2_size
-    file_format  = "raw"
-    ssd          = true
-    discard      = "on"
+  dynamic "disk" {
+    for_each = each.value.disks
+    content {
+      datastore_id = disk.value.datastore
+      interface    = disk.value.interface
+      size         = disk.value.size
+      file_format  = "raw"
+      ssd          = true
+      discard      = "on"
+    }
   }
 
   network_device {
     bridge      = var.vm_bridge
     model       = "virtio"
     vlan_id     = var.vlan_id
-    mac_address = var.worker_pve1_mac
+    mac_address = each.value.mac_address
   }
 }
 
-# ============================================================================
-# Worker Node on PVE-2
-# ============================================================================
-
-resource "proxmox_virtual_environment_vm" "worker_pve2" {
-  vm_id       = var.vm_start_id + 2
-  name        = "k8s-w-2"
-  description = "Kubernetes Worker Node on PVE-2"
-  tags        = ["kubernetes", "worker", "pve-2"]
-  node_name   = "pve-2"
-
-  started = true
-  on_boot = true
-
-  boot_order = ["scsi0", "net0"]
-
-  cpu {
-    cores   = var.worker_pve2_cores
-    sockets = 1
-    type    = "host"
-  }
-
-  memory {
-    dedicated = var.worker_pve2_memory
-  }
-
-  agent {
-    enabled = true
-    trim    = true
-    type    = "virtio"
-  }
-
-  disk {
-    datastore_id = "data-2"
-    interface    = "scsi0"
-    size         = var.worker_pve2_disk_size
-    file_format  = "raw"
-    ssd          = true
-    discard      = "on"
-  }
-
-  disk {
-    datastore_id = "data-2"
-    interface    = "scsi1"
-    size         = var.worker_pve2_disk2_size
-    file_format  = "raw"
-    ssd          = true
-    discard      = "on"
-  }
-
-  network_device {
-    bridge      = var.vm_bridge
-    model       = "virtio"
-    vlan_id     = var.vlan_id
-    mac_address = var.worker_pve2_mac
-  }
-}
-
-# ============================================================================
 # Outputs
-# ============================================================================
 
-output "cluster_summary" {
-  description = "Kubernetes cluster summary"
+output "cluster_nodes" {
+  description = "Kubernetes cluster nodes summary"
   value = {
-    control_plane = {
-      name   = proxmox_virtual_environment_vm.control_plane.name
-      vm_id  = proxmox_virtual_environment_vm.control_plane.vm_id
-      node   = proxmox_virtual_environment_vm.control_plane.node_name
-      ip     = cidrhost(var.network_cidr, var.control_plane_ip)
-      cores  = var.control_plane_cores
-      memory = "${var.control_plane_memory / 1024} GB"
+    control_planes = {
+      for name, node in proxmox_virtual_environment_vm.control_plane : name => {
+        vm_id  = node.vm_id
+        node   = node.node_name
+        ip     = cidrhost(var.network_cidr, var.control_planes[name].ip)
+        cores  = var.control_planes[name].cores
+        memory = "${var.control_planes[name].memory / 1024} GB"
+      }
     }
-    worker_pve1 = {
-      name   = proxmox_virtual_environment_vm.worker_pve1.name
-      vm_id  = proxmox_virtual_environment_vm.worker_pve1.vm_id
-      node   = proxmox_virtual_environment_vm.worker_pve1.node_name
-      ip     = cidrhost(var.network_cidr, var.worker_pve1_ip)
-      cores  = var.worker_pve1_cores
-      memory = "${var.worker_pve1_memory / 1024} GB"
-    }
-    worker_pve2 = {
-      name   = proxmox_virtual_environment_vm.worker_pve2.name
-      vm_id  = proxmox_virtual_environment_vm.worker_pve2.vm_id
-      node   = proxmox_virtual_environment_vm.worker_pve2.node_name
-      ip     = cidrhost(var.network_cidr, var.worker_pve2_ip)
-      cores  = var.worker_pve2_cores
-      memory = "${var.worker_pve2_memory / 1024} GB"
+    workers = {
+      for name, node in proxmox_virtual_environment_vm.worker : name => {
+        vm_id  = node.vm_id
+        node   = node.node_name
+        ip     = cidrhost(var.network_cidr, var.workers[name].ip)
+        cores  = var.workers[name].cores
+        memory = "${var.workers[name].memory / 1024} GB"
+      }
     }
   }
 }
 
-output "control_plane_ip" {
-  description = "Control plane IP address"
-  value       = cidrhost(var.network_cidr, var.control_plane_ip)
+output "control_plane_ips" {
+  description = "Control plane IP addresses"
+  value = {
+    for name, config in var.control_planes : name => cidrhost(var.network_cidr, config.ip)
+  }
 }
 
 output "worker_ips" {
   description = "Worker node IP addresses"
   value = {
-    pve1 = cidrhost(var.network_cidr, var.worker_pve1_ip)
-    pve2 = cidrhost(var.network_cidr, var.worker_pve2_ip)
-  }
-}
-
-output "vm_ids" {
-  description = "All VM IDs"
-  value = {
-    control_plane = proxmox_virtual_environment_vm.control_plane.vm_id
-    worker_pve1   = proxmox_virtual_environment_vm.worker_pve1.vm_id
-    worker_pve2   = proxmox_virtual_environment_vm.worker_pve2.vm_id
+    for name, config in var.workers : name => cidrhost(var.network_cidr, config.ip)
   }
 }
