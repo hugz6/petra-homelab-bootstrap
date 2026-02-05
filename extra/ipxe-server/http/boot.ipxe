@@ -5,9 +5,12 @@ set server_ip 192.168.1.105
 set http_url http://${server_ip}:8000
 
 # Detect VM purpose by MAC addrs and install corresponding image
-iseq ${net0/mac} bc:24:11:00:00:01 && set hostname k8s-cp-01 && goto boot_ubuntu ||
-iseq ${net0/mac} bc:24:11:00:00:02 && set hostname k8s-w-01 && goto boot_ubuntu ||
-iseq ${net0/mac} bc:24:11:00:00:03 && set hostname k8s-w-02 && goto boot_ubuntu ||
+iseq ${net0/mac} bc:24:11:00:00:11 && set hostname k8s-cp-01 && goto boot_ubuntu ||
+iseq ${net0/mac} bc:24:11:00:00:12 && set hostname k8s-cp-02 && goto boot_ubuntu ||
+iseq ${net0/mac} bc:24:11:00:00:13 && set hostname k8s-cp-03 && goto boot_ubuntu ||
+iseq ${net0/mac} bc:24:11:00:00:21 && set hostname k8s-w-01 && goto boot_ubuntu ||
+iseq ${net0/mac} bc:24:11:00:00:22 && set hostname k8s-w-02 && goto boot_ubuntu ||
+iseq ${net0/mac} bc:24:11:00:00:23 && set hostname k8s-w-03 && goto boot_ubuntu ||
 
 # If no machines matches display the menu
 goto start
