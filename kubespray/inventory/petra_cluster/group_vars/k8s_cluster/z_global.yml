@@ -2,6 +2,7 @@
 calico_network_backend: bird
 calico_ipip_mode: 'Never'
 calico_vxlan_mode: 'Never'
+kube_proxy_strict_arp: true
 
 # Cluster Tuning
 kubelet_config_extra_args:
@@ -12,3 +13,18 @@ kubelet_config_extra_args:
 metrics_server_enabled: true
 helm_enabled: true
 argocd_enabled: true
+
+# Kube-vip
+kube_vip_enabled: true
+kube_vip_interface: ens18
+kube_vip_services_interface: ens18
+kube_vip_arp_enabled: true
+kube_vip_controlplane_enabled: true
+kube_vip_services_enabled: true
+kube_vip_lb_enable: true
+kube_vip_address: 192.168.1.210
+apiserver_loadbalancer_domain_name: "{{ kube_vip_address }}"
+supplementary_addresses_in_ssl_keys: [192.168.1.210]
+loadbalancer_apiserver:
+  address: "{{ kube_vip_address }}"
+  port: 6443
