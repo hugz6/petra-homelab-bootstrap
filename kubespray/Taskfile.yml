@@ -5,9 +5,9 @@ vars:
   INVENTORY_FILE: inventory/petra_cluster/inventory.ini
   KUBESPRAY_DIR: kubespray
   
-  PROJECT_ROOT:
-    sh: pwd
-  ANSIBLE_BIN: "{{.PROJECT_ROOT}}/.venv/bin/ansible-playbook"
+  PROJECT_ROOT: "{{.TASKFILE_DIR}}"
+  ANSIBLE_PLAYBOOK: "{{.PROJECT_ROOT}}/.venv/bin/ansible-playbook"
+  ANSIBLE_CMD: "{{.PROJECT_ROOT}}/.venv/bin/ansible"
   INVENTORY_ABS: "{{.PROJECT_ROOT}}/{{.INVENTORY_FILE}}"
 
 env:
@@ -35,7 +35,7 @@ tasks:
   ping:
     desc: "Checks the SSH connection with all nodes"
     cmds:
-      - ".venv/bin/ansible -i {{.INVENTORY_FILE}} all -m ping --user {{.SSH_USER}} --become"
+      - "{{.ANSIBLE_CMD}} -i {{.INVENTORY_FILE}} all -m ping --user {{.SSH_USER}} --become"
 
   deploy:
     desc: "Deploys the complete cluster (cluster.yml)"
@@ -45,7 +45,7 @@ tasks:
     dir: "{{.KUBESPRAY_DIR}}"
     cmds:
       - >
-        {{.ANSIBLE_BIN}}
+        {{.ANSIBLE_PLAYBOOK}}
         -i {{.INVENTORY_ABS}}
         --user={{.SSH_USER}}
         --become
@@ -58,7 +58,7 @@ tasks:
     dir: "{{.KUBESPRAY_DIR}}"
     cmds:
       - >
-        {{.ANSIBLE_BIN}}
+        {{.ANSIBLE_PLAYBOOK}}
         -i {{.INVENTORY_ABS}}
         --user={{.SSH_USER}}
         --become
@@ -71,7 +71,7 @@ tasks:
     dir: "{{.KUBESPRAY_DIR}}"
     cmds:
       - >
-        {{.ANSIBLE_BIN}}
+        {{.ANSIBLE_PLAYBOOK}}
         -i {{.INVENTORY_ABS}}
         --user={{.SSH_USER}}
         --become
@@ -88,7 +88,7 @@ tasks:
     dir: "{{.KUBESPRAY_DIR}}"
     cmds:
       - >
-        {{.ANSIBLE_BIN}}
+        {{.ANSIBLE_PLAYBOOK}}
         -i {{.INVENTORY_ABS}}
         --user={{.SSH_USER}}
         --become
@@ -108,7 +108,7 @@ tasks:
     cmds:
       - echo "Reconfiguring node {{.NODE}} only..."
       - >
-        {{.ANSIBLE_BIN}}
+        {{.ANSIBLE_PLAYBOOK}}
         -i {{.INVENTORY_ABS}}
         --user={{.SSH_USER}}
         --become
@@ -117,19 +117,21 @@ tasks:
         cluster.yml
 
   get-kubeconfig:
-    desc: "Retrieve the admin.conf file from the first master"
+    desc: "Retrieve the admin.conf file from the first master and configure it for the VIP"
     vars:
-      MASTER_IP: '{{default "" .IP}}'
-    preconditions:
-      - sh: '[ -n "{{.MASTER_IP}}" ]'
-        msg: "You must specify the master IP! Example: task get-kubeconfig IP=192.168.1.10"
+      VIP: 192.168.1.210
+      MASTER_1: 192.168.1.211
+      TARGET_IP: '{{default .VIP .IP}}'
     cmds:
-      - echo "Retrieving the config file..."
-      - ssh -o StrictHostKeyChecking=no {{.SSH_USER}}@{{.MASTER_IP}} "sudo cp /etc/kubernetes/admin.conf /tmp/admin.conf && sudo chown {{.SSH_USER}} /tmp/admin.conf"
-      - scp -o StrictHostKeyChecking=no {{.SSH_USER}}@{{.MASTER_IP}}:/tmp/admin.conf ~/.kube/config
-      - ssh -o StrictHostKeyChecking=no {{.SSH_USER}}@{{.MASTER_IP}} "rm /tmp/admin.conf"
+      - echo "Retrieving the config file from {{.MASTER_1}}..."
+      - ssh -o StrictHostKeyChecking=no {{.SSH_USER}}@{{.MASTER_1}} "sudo cp /etc/kubernetes/admin.conf /tmp/admin.conf && sudo chown {{.SSH_USER}} /tmp/admin.conf"
+      - mkdir -p ~/.kube
+      - scp -o StrictHostKeyChecking=no {{.SSH_USER}}@{{.MASTER_1}}:/tmp/admin.conf ~/.kube/config
+      - ssh -o StrictHostKeyChecking=no {{.SSH_USER}}@{{.MASTER_1}} "rm /tmp/admin.conf"
       - echo "Correcting permissions..."
       - chmod 600 ~/.kube/config
-      - echo "Replacing localhost/127.0.0.1 by the master IP..."
-      - sed -i 's/127.0.0.1/{{.MASTER_IP}}/g' ~/.kube/config
-      - echo "Kubeconfig installed !"
+      - echo "Configuring kubeconfig to point to {{.TARGET_IP}}..."
+      - 'sed -i "s|server: https://.*:6443|server: https://{{.TARGET_IP}}:6443|g" ~/.kube/config'
+      - echo "Kubeconfig installed and configured for HA !"
+
+  
