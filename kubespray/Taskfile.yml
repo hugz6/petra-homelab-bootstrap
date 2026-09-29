@@ -11,7 +11,11 @@ vars:
   INVENTORY_ABS: "{{.PROJECT_ROOT}}/{{.INVENTORY_FILE}}"
 
 env:
-  ANSIBLE_HOST_KEY_CHECKING: "False"
+  # Verify SSH host keys. accept-new trusts a host on first contact (needed for
+  # freshly provisioned nodes) but fails if a known host's key later changes,
+  # catching MITM on reconnect.
+  ANSIBLE_HOST_KEY_CHECKING: "True"
+  ANSIBLE_SSH_ARGS: "-o ControlMaster=auto -o ControlPersist=60s -o StrictHostKeyChecking=accept-new"
   ANSIBLE_PYTHON_INTERPRETER: auto_silent
 
 tasks:
@@ -124,10 +128,10 @@ tasks:
       TARGET_IP: '{{default .VIP .IP}}'
     cmds:
       - echo "Retrieving the config file from {{.MASTER_1}}..."
-      - ssh -o StrictHostKeyChecking=no {{.SSH_USER}}@{{.MASTER_1}} "sudo cp /etc/kubernetes/admin.conf /tmp/admin.conf && sudo chown {{.SSH_USER}} /tmp/admin.conf"
+      - ssh -o StrictHostKeyChecking=accept-new {{.SSH_USER}}@{{.MASTER_1}} "sudo cp /etc/kubernetes/admin.conf /tmp/admin.conf && sudo chown {{.SSH_USER}} /tmp/admin.conf"
       - mkdir -p ~/.kube
-      - scp -o StrictHostKeyChecking=no {{.SSH_USER}}@{{.MASTER_1}}:/tmp/admin.conf ~/.kube/config
-      - ssh -o StrictHostKeyChecking=no {{.SSH_USER}}@{{.MASTER_1}} "rm /tmp/admin.conf"
+      - scp -o StrictHostKeyChecking=accept-new {{.SSH_USER}}@{{.MASTER_1}}:/tmp/admin.conf ~/.kube/config
+      - ssh -o StrictHostKeyChecking=accept-new {{.SSH_USER}}@{{.MASTER_1}} "rm /tmp/admin.conf"
       - echo "Correcting permissions..."
       - chmod 600 ~/.kube/config
       - echo "Configuring kubeconfig to point to {{.TARGET_IP}}..."
