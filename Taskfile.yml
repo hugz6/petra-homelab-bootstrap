@@ -1,0 +1,25 @@
+version: '3'
+
+tasks:
+  ipxe:start:
+    desc: "Start the iPXE server (requires sudo for dnsmasq)"
+    cmds:
+      - ./extra/ipxe-server/start.sh
+
+  terraform:proxmox:init:
+    desc: "Initialize Proxmox Terraform"
+    dir: terraform/proxmox
+    cmds:
+      - task init
+
+  terraform:proxmox:apply:
+    desc: "Apply Proxmox Terraform"
+    dir: terraform/proxmox
+    cmds:
+      - task apply
+
+  kubespray:install:
+    desc: "Run Kubespray to install the cluster"
+    dir: kubespray
+    cmds:
+      - task install
