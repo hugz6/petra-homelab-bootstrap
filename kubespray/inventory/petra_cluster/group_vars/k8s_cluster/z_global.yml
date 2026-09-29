@@ -13,6 +13,25 @@ kubelet_config_extra_args:
 metrics_server_enabled: true
 helm_enabled: true
 
+# Hardening
+# Encrypt Secret objects at rest in etcd (only affects secrets written after the
+# apply; existing secrets must be re-created/re-written to be encrypted).
+kube_encrypt_secret_data: true
+kube_encryption_algorithm: secretbox
+# API server audit logging (kubespray ships a default audit policy).
+kubernetes_audit: true
+# Pod Security Admission. Enforce 'baseline' (blocks privileged/host escalation)
+# and warn/audit against 'restricted'. longhorn-system is exempted because
+# Longhorn requires privileged pods + hostPath; kube-system stays exempt for
+# Calico/kube-vip/etc.
+kube_pod_security_use_default: true
+kube_pod_security_default_enforce: baseline
+kube_pod_security_default_audit: restricted
+kube_pod_security_default_warn: restricted
+kube_pod_security_exemptions_namespaces:
+  - kube-system
+  - longhorn-system
+
 # Kube-vip
 kube_vip_enabled: true
 kube_vip_interface: ens18
