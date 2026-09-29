@@ -12,7 +12,6 @@ kubelet_config_extra_args:
 # Addons
 metrics_server_enabled: true
 helm_enabled: true
-argocd_enabled: true
 
 # Kube-vip
 kube_vip_enabled: true
