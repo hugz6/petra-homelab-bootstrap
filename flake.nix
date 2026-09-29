@@ -9,7 +9,10 @@
   outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
         
         pythonEnv = pkgs.python3.withPackages (ps: with ps; [
           netaddr
@@ -22,14 +25,19 @@
       {
         devShells.default = pkgs.mkShell {
           buildInputs = [
-	    pkgs.terraform
+            pkgs.terraform
             pkgs.go-task
             pythonEnv
             pkgs.ansible_2_17
+            pkgs.dnsmasq
+            pkgs.wget
+            pkgs.procps
+            pkgs.iproute2
           ];
 
           shellHook = ''
             echo "Homelab Bootstrap Flake Environment loaded."
+            echo "To start the iPXE server, run: task ipxe:start"
           '';
         };
       }
