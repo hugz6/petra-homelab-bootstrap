@@ -10,16 +10,16 @@ tasks:
     desc: "Initialize Proxmox Terraform"
     dir: terraform/proxmox
     cmds:
-      - task init
+      - task tf-init
 
   terraform:proxmox:apply:
     desc: "Apply Proxmox Terraform"
     dir: terraform/proxmox
     cmds:
-      - task apply
+      - task tf-apply
 
   kubespray:install:
     desc: "Run Kubespray to install the cluster"
     dir: kubespray
     cmds:
-      - task install
+      - task deploy
